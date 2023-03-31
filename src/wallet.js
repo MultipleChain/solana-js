@@ -98,7 +98,9 @@ class Wallet {
             try {
                 
                 await this.solWalletAdapter.select(this.wallet.name);
-                this.wallet.addListener('error', utils.rejectMessage);
+                this.wallet.addListener('error', (error) => {
+                    utils.rejectMessage(error, reject);
+                });
                 
                 let time = 0;
                 let timeout = 15;
