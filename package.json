@@ -1,0 +1,52 @@
+{
+  "namespace": "multiplechain",
+  "name": "@multiplechain/solana",
+  "version": "0.1.0",
+  "description": "Solana has ready-made methods to connect to wallets and perform many transactions.",
+  "scripts": {
+    "serve": "parcel test.html --no-cache --dist-dir test",
+    "build": "webpack",
+    "push": "webpack && npm publish"
+  },
+  "files": [
+    "dist",
+    "resources"
+  ],
+  "main": "dist/provider.js",
+  "types": "index.d.ts",
+  "typings": "index.d.ts",
+  "prepublishOnly": "npm run build",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MultipleChain/solana-js.git"
+  },
+  "keywords": [
+    "Solana",
+    "crypto",
+    "payment"
+  ],
+  "author": "MultipleChain",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MultipleChain/solana-js/issues"
+  },
+  "homepage": "https://github.com/MultipleChain/solana-js",
+  "dependencies": {
+    "@multiplechain/utils": "^0.1.1",
+    "@solana/spl-token": "0.1.8",
+    "@solana/spl-token-registry": "^0.2.4574",
+    "@solana/wallet-adapter-phantom": "^0.9.22",
+    "@solana/wallet-adapter-slope": "^0.5.20",
+    "@solana/wallet-adapter-solflare": "^0.6.24",
+    "@solana/web3.js": "^1.74.0",
+    "solana-wallets-vue": "^0.6.0"
+  },
+  "devDependencies": {
+    "assert": "^2.0.0",
+    "buffer": "^5.7.1",
+    "process": "^0.11.10",
+    "stream-browserify": "^3.0.0",
+    "webpack": "^5.76.3",
+    "webpack-cli": "^5.0.1"
+  }
+}
