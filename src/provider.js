@@ -1,5 +1,4 @@
 
-const utils = require('./utils');
 const Web3 = require('@solana/web3.js');
 const Coin = require('./entity/coin');
 const Token = require('./entity/token');
@@ -173,7 +172,7 @@ class Provider {
                 this.detectedWallets['slope'] = new Wallet('slope', this);
             }
 
-            this.detectedWallets['solflare'] = new Wallet('slope', this);
+            this.detectedWallets['solflare'] = new Wallet('solflare', this);
         }
     }
 
