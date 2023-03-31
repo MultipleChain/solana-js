@@ -18,7 +18,20 @@ class Token {
     /**
      * @var {Array} 
      */
-    tokenList;
+    tokenInfo;
+
+    /**
+     * @var {Object}
+     */
+    testnetTokens = {
+        "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU": {
+            name: "USD Coin",
+            symbol: "USDC",
+            decimals: 6,
+            address: "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+            logoURI: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png",
+        }
+    }
 
     /**
      * @param {String} address 
@@ -29,13 +42,12 @@ class Token {
         this.provider = provider;
         
         new TokenListProvider().resolve().then(tokens => {
-            const tokenList = tokens.filterByClusterSlug(this.provider.network.node).getList();
-        
-            this.tokenList = tokenList.reduce((map, item) => {
-                map.set(item.address, item);
-                return map;
-            },  new Map());
+            let tokenList = tokens.filterByClusterSlug(this.provider.network.node).getList();
+            let tokenInfo = tokenList.find(x => x.address === this.address);
+            this.tokenInfo = tokenInfo ? tokenInfo : this.testnetTokens[this.address];
         });
+
+        
     }
 
     /**
@@ -49,21 +61,21 @@ class Token {
      * @returns {String|Object}
      */
     getName() {
-        return this.methods.name().call();
+        return this.tokenInfo.name;
     }
 
     /**
      * @returns {String|Object}
      */
     getSymbol() {
-        return this.methods.symbol().call();
+        return this.tokenInfo.symbol;
     }
 
     /**
      * @returns {String|Object}
      */
     getDecimals() {
-        return this.methods.decimals().call();
+        return this.tokenInfo.decimals;
     }
 
     /**
@@ -81,14 +93,8 @@ class Token {
      * @returns {Number}
      */
     async getBalance(from) {
-        return (await this.getInfo(from)).uiAmount;
-    }
 
-    /**
-     * @param {String} from 
-     * @returns {Object}
-     */
-    async getInfo(from) {
+        
         const tokenPublicKey = new Web3.PublicKey(this.address);
 
         const token = this.splTokenInstance(this.address);
@@ -100,22 +106,9 @@ class Token {
             fromPublicKey
         );
 
-        let tokenInfo = {};
-        try {
-            tokenInfo = await this.provider.web3.getTokenAccountBalance(tokenAccount);
-        } catch (error) {
+        tokenInfo = await this.provider.web3.getTokenAccountBalance(tokenAccount);
 
-            let tokenInfoByList = this.tokenList.get(this.address);
-
-            tokenInfo.value = {
-                amount: "0",
-                uiAmount: 0,
-                uiAmountString: "0",
-                decimals: tokenInfoByList.decimals
-            };
-        }
-
-        return Object.assign(tokenInfo.value, {tokenAccount: tokenAccount.toBase58(), tokenAddress: this.address});
+        return tokenInfo.uiAmount;
     }
 
     /**
@@ -148,8 +141,7 @@ class Token {
                 const fromPublicKey = new Web3.PublicKey(from);
                 const toPublicKey = new Web3.PublicKey(to);
                 const tokenPublicKey = new Web3.PublicKey(this.address);
-                const tokenInfo = await this.getInfo(this.address);
-                amount = parseInt(utils.toHex(amount, tokenInfo.decimals), 16);
+                amount = parseInt(utils.toHex(amount, this.getDecimals()), 16);
     
                 const token = this.splTokenInstance(this.address);
     
