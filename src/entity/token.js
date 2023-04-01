@@ -16,7 +16,7 @@ class Token {
     provider;
 
     /**
-     * @var {Array} 
+     * @var {Object} 
      */
     tokenInfo;
 
@@ -29,7 +29,6 @@ class Token {
             symbol: "USDC",
             decimals: 6,
             address: "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
-            logoURI: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png",
         }
     }
 
@@ -40,14 +39,17 @@ class Token {
     constructor(address, provider) {
         this.address = address;
         this.provider = provider;
-        
-        new TokenListProvider().resolve().then(tokens => {
-            let tokenList = tokens.filterByClusterSlug(this.provider.network.node).getList();
-            let tokenInfo = tokenList.find(x => x.address === this.address);
-            this.tokenInfo = tokenInfo ? tokenInfo : this.testnetTokens[this.address];
-        });
+    }
 
-        
+    getInfo() {
+        return new Promise((resolve) => {
+            if (this.tokenInfo) return resolve(this.tokenInfo);
+            new TokenListProvider().resolve().then(async(tokens) => {
+                let tokenList = tokens.filterByClusterSlug(this.provider.network.node).getList();
+                let tokenInfo = tokenList.find(x => x.address === this.address);
+                resolve(this.tokenInfo = tokenInfo ? tokenInfo : this.testnetTokens[this.address]);
+            });
+        });
     }
 
     /**
@@ -58,35 +60,33 @@ class Token {
     }
     
     /**
-     * @returns {String|Object}
+     * @returns {String}
      */
-    getName() {
+    async getName() {
+        await this.getInfo();
         return this.tokenInfo.name;
     }
 
     /**
-     * @returns {String|Object}
+     * @returns {String}
      */
-    getSymbol() {
+    async getSymbol() {
+        await this.getInfo();
         return this.tokenInfo.symbol;
     }
 
     /**
-     * @returns {String|Object}
+     * @returns {Number}
      */
-    getDecimals() {
+    async getDecimals() {
+        await this.getInfo();
         return this.tokenInfo.decimals;
     }
 
-    /**
-     * @returns {Float|Object}
-     */
     async getTotalSupply() {
-        let decimals = await this.getDecimals();
-        let totalSupply = await this.methods.totalSupply().call();
-        return utils.toDec(totalSupply, decimals);
+        let result = await this.provider.request('getTokenSupply', [this.address]);
+        return result.value.uiAmount;
     }
-
     
     /**
      * @param {String} from 
@@ -94,7 +94,6 @@ class Token {
      */
     async getBalance(from) {
 
-        
         const tokenPublicKey = new Web3.PublicKey(this.address);
 
         const token = this.splTokenInstance(this.address);
@@ -106,18 +105,22 @@ class Token {
             fromPublicKey
         );
 
-        tokenInfo = await this.provider.web3.getTokenAccountBalance(tokenAccount);
+        let tokenInfo = await this.provider.web3.getTokenAccountBalance(tokenAccount);
 
-        return tokenInfo.uiAmount;
+        return tokenInfo ? tokenInfo.value.uiAmount : 0;
     }
 
     /**
-     * @param {String} tokenAccount 
+     * @param {String|Null} tokenAccount 
      * @returns 
      */
     async getAccountInfo(tokenAccount) {
-        const token = this.splTokenInstance(this.address);
-        return await token.getAccountInfo((new Web3.PublicKey(tokenAccount)));
+        try {
+            const token = this.splTokenInstance(this.address);
+            return await token.getAccountInfo((new Web3.PublicKey(tokenAccount)));
+        } catch (error) {
+            return null;
+        }
     }
 
     /**
@@ -141,7 +144,7 @@ class Token {
                 const fromPublicKey = new Web3.PublicKey(from);
                 const toPublicKey = new Web3.PublicKey(to);
                 const tokenPublicKey = new Web3.PublicKey(this.address);
-                amount = parseInt(utils.toHex(amount, this.getDecimals()), 16);
+                amount = parseInt(utils.toHex(amount, await this.getDecimals()), 16);
     
                 const token = this.splTokenInstance(this.address);
     

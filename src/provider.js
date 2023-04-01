@@ -65,7 +65,7 @@ class Provider {
     constructor(testnet = false) {
         this.testnet = testnet;
 
-        this.network = this.networks[this.testnet ? 'testnet' : 'mainnet'];
+        this.network = this.networks[this.testnet ? 'devnet' : 'mainnet'];
 
         this.web3 = new Web3.Connection(this.network.host);
 

@@ -85,7 +85,11 @@ class Transaction {
             afterBalance = this.data.meta.postTokenBalances[0].uiTokenAmount.uiAmount;
             diff = (beforeBalance - afterBalance);
 
-            if (!(diff == amount)) {
+            if (typeof this.data.meta.preTokenBalances[1] === 'undefined') {
+                beforeBalance = this.data.meta.preTokenBalances[0].uiTokenAmount.uiAmount;
+                afterBalance = this.data.meta.postTokenBalances[1].uiTokenAmount.uiAmount;
+                diff = (beforeBalance - afterBalance);
+            } else if (!(diff == amount)) {
                 beforeBalance = this.data.meta.preTokenBalances[1].uiTokenAmount.uiAmount;
                 afterBalance = this.data.meta.postTokenBalances[1].uiTokenAmount.uiAmount;
                 diff = (beforeBalance - afterBalance);
