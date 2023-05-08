@@ -62,10 +62,13 @@ class Provider {
     /**
      * @param {Boolean} testnet 
      */
-    constructor(testnet = false) {
+    constructor(testnet = false, customRpc = null) {
         this.testnet = testnet;
 
         this.network = this.networks[this.testnet ? 'devnet' : 'mainnet'];
+        if (!this.testnet && customRpc) {
+            this.network.host = customRpc;
+        }
 
         this.web3 = new Web3.Connection(this.network.host);
 
@@ -163,16 +166,17 @@ class Provider {
         if (typeof window != 'undefined') {
             const Wallet = require('./wallet');
 
-            if (window.phantom) {
+            if (window.phantom?.solana?.isPhantom) {
                 this.detectedWallets['phantom'] = new Wallet('phantom', this);
             }
-            
 
             if (window.Slope) {
                 this.detectedWallets['slope'] = new Wallet('slope', this);
             }
 
-            this.detectedWallets['solflare'] = new Wallet('solflare', this);
+            if (window.solflare?.isSolflare) {
+                this.detectedWallets['solflare'] = new Wallet('solflare', this);
+            }
         }
     }
 
