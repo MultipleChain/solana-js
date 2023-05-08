@@ -7,7 +7,6 @@ Number.prototype.countDecimals = function () {
 
 module.exports = Object.assign(utils, {
     rejectMessage(error, reject) {
-        
         if (typeof error == 'object') {
             if (
                 ['WalletConnectionError', 'WalletWindowClosedError', 'WalletAccountError'].includes(error.name) ||
@@ -15,6 +14,9 @@ module.exports = Object.assign(utils, {
                 error.name == 'WalletSignTransactionError'
             ) {
                 return reject('request-rejected');
+            } else if ('WalletSendTransactionError' == error.name) {
+                console.log('giri')
+                return reject('not-accepted-chain');
             } else if (error.name == 'WalletTimeoutError') {
                 return reject('timeout');
             } else if (error.name == "WalletNotReadyError") {
