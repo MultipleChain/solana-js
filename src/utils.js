@@ -15,7 +15,6 @@ module.exports = Object.assign(utils, {
             ) {
                 return reject('request-rejected');
             } else if ('WalletSendTransactionError' == error.name) {
-                console.log('giri')
                 return reject('not-accepted-chain');
             } else if (error.name == 'WalletTimeoutError') {
                 return reject('timeout');
