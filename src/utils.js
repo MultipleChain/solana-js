@@ -18,8 +18,13 @@ module.exports = Object.assign(utils, {
                 return reject('not-accepted-chain');
             } else if (error.name == 'WalletTimeoutError') {
                 return reject('timeout');
+            } else if (
+                (error.message && error.message.indexOf('403') !== -1) ||
+                (error.message && error.message.indexOf('Access forbidden') !== -1)
+            ) {
+                return reject('rpc-access-forbidden');
             } else if (error.name == "WalletNotReadyError") {
-                reject('wallet-not-found');
+                return reject('wallet-not-found');
             }
         }
 
