@@ -75,6 +75,45 @@ class Transaction {
     }
 
     /**
+     * @returns {Number}
+     */
+    async getTransactionAmount() {
+        await this.getData();
+        let beforeBalance, afterBalance, diff;
+        if (this.data.meta.preTokenBalances.length > 0) {
+            beforeBalance = this.data.meta.preTokenBalances[0].uiTokenAmount.uiAmount;
+            afterBalance = this.data.meta.postTokenBalances[0].uiTokenAmount.uiAmount;
+            diff = (beforeBalance - afterBalance);
+
+            if (typeof this.data.meta.preTokenBalances[1] === 'undefined') {
+                beforeBalance = this.data.meta.preTokenBalances[0].uiTokenAmount.uiAmount;
+                afterBalance = this.data.meta.postTokenBalances[1].uiTokenAmount.uiAmount;
+                diff = (beforeBalance - afterBalance);
+            } else if (diff < 0) {
+                beforeBalance = this.data.meta.preTokenBalances[1].uiTokenAmount.uiAmount;
+                afterBalance = this.data.meta.postTokenBalances[1].uiTokenAmount.uiAmount;
+                diff = (beforeBalance - afterBalance);
+            }
+
+            if (diff < 0) {
+                diff = Math.abs(beforeBalance - afterBalance).toFixed(amount.countDecimals());
+            }
+        } else {
+            beforeBalance = this.data.meta.preBalances[0];
+            afterBalance = this.data.meta.postBalances[0];
+            diff = utils.toDec((afterBalance - beforeBalance), 9);
+            
+            if (diff < 0) {
+                beforeBalance = this.data.meta.preBalances[1];
+                afterBalance = this.data.meta.postBalances[1];
+                diff = utils.toDec((afterBalance - beforeBalance), 9);
+            }
+        }
+
+        return diff;
+    }
+
+    /**
      * @param {Number} amount 
      * @returns {Boolean}
      */
@@ -122,7 +161,7 @@ class Transaction {
                 diff = utils.toDec((afterBalance - beforeBalance), 9);
             }
         
-            return diff == amount;
+            return String(diff) == String(amount);
         } else {
             return false;
         }

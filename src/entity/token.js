@@ -41,14 +41,61 @@ class Token {
         this.provider = provider;
     }
 
-    getInfo() {
-        return new Promise((resolve) => {
-            if (this.tokenInfo) return resolve(this.tokenInfo);
+    /**
+     * @param {String|null} from
+     * @returns {Object}
+     * @returns {Object|String}
+     */
+    getInfo(from = null) {
+        return new Promise((resolve, reject) => {
             new TokenListProvider().resolve().then(async(tokens) => {
                 let tokenList = tokens.filterByClusterSlug(this.provider.network.node).getList();
                 let tokenInfo = tokenList.find(x => x.address === this.address);
+                if (!tokenInfo) {
+                    tokenInfo = await this.getTokenInfoWithDifferentWays(from);
+                    if (!tokenInfo) {
+                        return reject('token-metadata-not-found');
+                    }
+                }
                 resolve(this.tokenInfo = tokenInfo ? tokenInfo : this.testnetTokens[this.address]);
             });
+        });
+    }
+
+    /**
+     * @param {String|null} from 
+     * @returns {Object|String}
+     */
+    async getTokenInfoWithDifferentWays(from = null) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                
+                const token = this.splTokenInstance(this.address);
+                const mintInfo = await token.getMintInfo(this.address);
+                
+                if (mintInfo) {
+                    return resolve({
+                        decimals : mintInfo.decimals,
+                    });
+                }
+
+                if (from) {
+                    const tokenPublicKey = new Web3.PublicKey(this.address);
+                    const fromPublicKey = new Web3.PublicKey(from);
+                    const tokenAccount = await SplToken.Token.getAssociatedTokenAddress(
+                        token.associatedProgramId,
+                        token.programId,
+                        tokenPublicKey,
+                        fromPublicKey
+                    );
+                    let tokenInfo = await this.provider.web3.getTokenAccountBalance(tokenAccount);
+                    return resolve({
+                        decimals : tokenInfo.value.decimals,
+                    });
+                }
+            } catch (error) {
+                return reject('token-metadata-not-found');
+            }
         });
     }
 
@@ -76,10 +123,11 @@ class Token {
     }
 
     /**
+     * @param {String|null} from
      * @returns {Number}
      */
-    async getDecimals() {
-        await this.getInfo();
+    async getDecimals(from = null) {
+        await this.getInfo(from);
         return this.tokenInfo.decimals;
     }
 
@@ -93,7 +141,6 @@ class Token {
      * @returns {Number}
      */
     async getBalance(from) {
-
         const tokenPublicKey = new Web3.PublicKey(this.address);
 
         const token = this.splTokenInstance(this.address);
@@ -144,7 +191,7 @@ class Token {
                 const fromPublicKey = new Web3.PublicKey(from);
                 const toPublicKey = new Web3.PublicKey(to);
                 const tokenPublicKey = new Web3.PublicKey(this.address);
-                amount = parseInt(utils.toHex(amount, await this.getDecimals()), 16);
+                amount = parseInt(utils.toHex(amount, await this.getDecimals(from)), 16);
     
                 const token = this.splTokenInstance(this.address);
     

@@ -76,6 +76,24 @@ class Provider {
     }
 
     /**
+     * @param {String} receiver 
+     * @returns {Object}
+     */
+    async getLastTransactionByReceiver(receiver) {
+        let pubkey = new Web3.PublicKey(receiver);
+        let requestSignatures = await this.web3.getSignaturesForAddress(pubkey, {
+            limit: 1
+        });
+        
+        let transaction = this.Transaction(requestSignatures[0].signature);
+
+        return {
+            hash: transaction.hash,
+            amount: await transaction.getTransactionAmount()
+        };
+    }
+
+    /**
      * 
      * @param {String} method 
      * @param {Array} params 
