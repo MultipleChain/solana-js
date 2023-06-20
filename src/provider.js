@@ -2,6 +2,7 @@
 const Web3 = require('@solana/web3.js');
 const Coin = require('./entity/coin');
 const Token = require('./entity/token');
+const SplToken = require('@solana/spl-token');
 const Transaction = require('./entity/transaction');
 
 class Provider {
@@ -77,13 +78,37 @@ class Provider {
 
     /**
      * @param {String} receiver 
+     * @param {String} tokenAddress
      * @returns {Object}
      */
-    async getLastTransactionByReceiver(receiver) {
-        let pubkey = new Web3.PublicKey(receiver);
-        let requestSignatures = await this.web3.getSignaturesForAddress(pubkey, {
-            limit: 1
-        });
+    async getLastTransactionByReceiver(receiver, tokenAddress = null) {
+        let requestSignatures;
+        let receiverPublicKey = new Web3.PublicKey(receiver);
+
+        if (tokenAddress) {
+
+            let token = new SplToken.Token(
+                this.web3,
+                new Web3.PublicKey(tokenAddress),
+                SplToken.TOKEN_PROGRAM_ID
+            );
+
+            let tokenPublicKey = new Web3.PublicKey(tokenAddress);
+            let tokenAccount = await SplToken.Token.getAssociatedTokenAddress(
+                token.associatedProgramId,
+                token.programId,
+                tokenPublicKey,
+                receiverPublicKey
+            );
+
+            requestSignatures = await this.web3.getSignaturesForAddress(tokenAccount, {
+                limit: 1
+            });
+        } else {
+            requestSignatures = await this.web3.getSignaturesForAddress(receiverPublicKey, {
+                limit: 1
+            });
+        }
         
         let transaction = this.Transaction(requestSignatures[0].signature);
 

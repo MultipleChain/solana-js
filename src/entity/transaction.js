@@ -79,25 +79,26 @@ class Transaction {
      */
     async getTransactionAmount() {
         await this.getData();
-        let beforeBalance, afterBalance, diff;
+        let beforeBalance, afterBalance, diff, decimals;
         if (this.data.meta.preTokenBalances.length > 0) {
+            decimals = this.data.meta.preTokenBalances[0].uiTokenAmount.decimals;
             beforeBalance = this.data.meta.preTokenBalances[0].uiTokenAmount.uiAmount;
             afterBalance = this.data.meta.postTokenBalances[0].uiTokenAmount.uiAmount;
             diff = (beforeBalance - afterBalance);
 
             if (typeof this.data.meta.preTokenBalances[1] === 'undefined') {
+                decimals = this.data.meta.preTokenBalances[0].uiTokenAmount.decimals;
                 beforeBalance = this.data.meta.preTokenBalances[0].uiTokenAmount.uiAmount;
                 afterBalance = this.data.meta.postTokenBalances[1].uiTokenAmount.uiAmount;
                 diff = (beforeBalance - afterBalance);
             } else if (diff < 0) {
+                decimals = this.data.meta.preTokenBalances[1].uiTokenAmount.decimals;
                 beforeBalance = this.data.meta.preTokenBalances[1].uiTokenAmount.uiAmount;
                 afterBalance = this.data.meta.postTokenBalances[1].uiTokenAmount.uiAmount;
                 diff = (beforeBalance - afterBalance);
             }
 
-            if (diff < 0) {
-                diff = Math.abs(beforeBalance - afterBalance).toFixed(amount.countDecimals());
-            }
+            diff = Math.abs(diff).toFixed(decimals);
         } else {
             beforeBalance = this.data.meta.preBalances[0];
             afterBalance = this.data.meta.postBalances[0];
@@ -110,7 +111,7 @@ class Transaction {
             }
         }
 
-        return diff;
+        return parseFloat(diff);
     }
 
     /**
