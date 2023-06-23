@@ -61,16 +61,20 @@ class Transaction {
      * @returns {Boolean}
      */
     async validate() {
-        let data = await this.getData();
-        if (data === null) {
-            await this.provider.confirmTransaction(this.hash);
-            data = await this.getData();
-        }
+        try {
+            let data = await this.getData();
+            if (data === null) {
+                await this.provider.confirmTransaction(this.hash);
+                data = await this.getData();
+            }
 
-        if (data.meta && data.meta.err === null) {
-            return true;
-        } else {
-            return false;
+            if (data.meta && data.meta.err === null) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (error) {
+            return this.validate();
         }
     }
 
@@ -79,40 +83,44 @@ class Transaction {
      * @returns {Number}
      */
     async getTransferAmount(options) {
-        await this.getData();
-        let beforeBalance, afterBalance, diff, decimals;
-        if (options && options.tokenAddress) {
-            decimals = this.data.meta.preTokenBalances[0].uiTokenAmount.decimals;
-            beforeBalance = this.data.meta.preTokenBalances[0].uiTokenAmount.uiAmount;
-            afterBalance = this.data.meta.postTokenBalances[0].uiTokenAmount.uiAmount;
-            diff = (beforeBalance - afterBalance);
-
-            if (typeof this.data.meta.preTokenBalances[1] === 'undefined') {
+        try {
+            await this.getData();
+            let beforeBalance, afterBalance, diff, decimals;
+            if (options && options.tokenAddress) {
                 decimals = this.data.meta.preTokenBalances[0].uiTokenAmount.decimals;
                 beforeBalance = this.data.meta.preTokenBalances[0].uiTokenAmount.uiAmount;
-                afterBalance = this.data.meta.postTokenBalances[1].uiTokenAmount.uiAmount;
+                afterBalance = this.data.meta.postTokenBalances[0].uiTokenAmount.uiAmount;
                 diff = (beforeBalance - afterBalance);
-            } else if (diff < 0) {
-                decimals = this.data.meta.preTokenBalances[1].uiTokenAmount.decimals;
-                beforeBalance = this.data.meta.preTokenBalances[1].uiTokenAmount.uiAmount;
-                afterBalance = this.data.meta.postTokenBalances[1].uiTokenAmount.uiAmount;
-                diff = (beforeBalance - afterBalance);
-            }
 
-            diff = Math.abs(diff).toFixed(decimals);
-        } else {
-            beforeBalance = this.data.meta.preBalances[0];
-            afterBalance = this.data.meta.postBalances[0];
-            diff = utils.toDec((afterBalance - beforeBalance), 9);
-            
-            if (diff < 0) {
-                beforeBalance = this.data.meta.preBalances[1];
-                afterBalance = this.data.meta.postBalances[1];
+                if (typeof this.data.meta.preTokenBalances[1] === 'undefined') {
+                    decimals = this.data.meta.preTokenBalances[0].uiTokenAmount.decimals;
+                    beforeBalance = this.data.meta.preTokenBalances[0].uiTokenAmount.uiAmount;
+                    afterBalance = this.data.meta.postTokenBalances[1].uiTokenAmount.uiAmount;
+                    diff = (beforeBalance - afterBalance);
+                } else if (diff < 0) {
+                    decimals = this.data.meta.preTokenBalances[1].uiTokenAmount.decimals;
+                    beforeBalance = this.data.meta.preTokenBalances[1].uiTokenAmount.uiAmount;
+                    afterBalance = this.data.meta.postTokenBalances[1].uiTokenAmount.uiAmount;
+                    diff = (beforeBalance - afterBalance);
+                }
+
+                diff = Math.abs(diff).toFixed(decimals);
+            } else {
+                beforeBalance = this.data.meta.preBalances[0];
+                afterBalance = this.data.meta.postBalances[0];
                 diff = utils.toDec((afterBalance - beforeBalance), 9);
+                
+                if (diff < 0) {
+                    beforeBalance = this.data.meta.preBalances[1];
+                    afterBalance = this.data.meta.postBalances[1];
+                    diff = utils.toDec((afterBalance - beforeBalance), 9);
+                }
             }
-        }
 
-        return parseFloat(diff);
+            return parseFloat(diff);
+        } catch (error) {
+            return this.getTransferAmount(options);
+        }
     }
 
     /**
