@@ -75,12 +75,13 @@ class Transaction {
     }
 
     /**
+     * @param {Object} options
      * @returns {Number}
      */
-    async getTransactionAmount() {
+    async getTransferAmount(options) {
         await this.getData();
         let beforeBalance, afterBalance, diff, decimals;
-        if (this.data.meta.preTokenBalances.length > 0) {
+        if (options && options.tokenAddress) {
             decimals = this.data.meta.preTokenBalances[0].uiTokenAmount.decimals;
             beforeBalance = this.data.meta.preTokenBalances[0].uiTokenAmount.uiAmount;
             afterBalance = this.data.meta.postTokenBalances[0].uiTokenAmount.uiAmount;

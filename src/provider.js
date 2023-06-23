@@ -47,6 +47,16 @@ class Provider {
     network = {};
 
     /**
+     * @var {String}
+     */
+    wsUrl;
+
+    /**
+     * @var {Boolean}
+     */
+    qrPayments = false;
+
+    /**
      * @var {Object}
      */
     detectedWallets = [];
@@ -61,14 +71,19 @@ class Provider {
     ];
 
     /**
-     * @param {Boolean} testnet 
+     * @param {Object} options
      */
-    constructor(testnet = false, customRpc = null) {
-        this.testnet = testnet;
+    constructor(options) {
+        this.wsUrl = options.customWs;
+        this.testnet = options.testnet;
 
         this.network = this.networks[this.testnet ? 'devnet' : 'mainnet'];
-        if (!this.testnet && customRpc) {
-            this.network.host = customRpc;
+        if (!this.testnet && options.customRpc) {
+            this.network.host = options.customRpc;
+        }
+
+        if (this.wsUrl) {
+            this.qrPayments = true;
         }
 
         this.web3 = new Web3.Connection(this.network.host);
@@ -77,45 +92,75 @@ class Provider {
     }
 
     /**
-     * @param {String} receiver 
-     * @param {String} tokenAddress
-     * @returns {Object}
+     * @param {Object} options 
+     * @param {Function} callback
      */
-    async getLastTransactionByReceiver(receiver, tokenAddress = null) {
-        let requestSignatures;
-        let receiverPublicKey = new Web3.PublicKey(receiver);
+    async listenTransactions(options, callback) {
+        let subscriptionId;
+        let receiver = options.receiver;
+        let tokenAddress = options.tokenAddress;
+        if (this.wsUrl) {
+            let ws = new WebSocket(this.wsUrl);
+            let subscription = {
+                unsubscribe: () => {
+                    ws.send(
+                        JSON.stringify({
+                            jsonrpc: '2.0',
+                            id: 1,
+                            method: 'logsUnsubscribe',
+                            params: [subscriptionId],
+                        })
+                    );
+                    ws.close();
+                }
+            }
+            
+            if (tokenAddress) {
+                let token = new SplToken.Token(
+                    this.web3,
+                    new Web3.PublicKey(tokenAddress),
+                    SplToken.TOKEN_PROGRAM_ID
+                );
+    
+                let tokenPublicKey = new Web3.PublicKey(tokenAddress);
+                let receiverPublicKey = new Web3.PublicKey(receiver);
+                receiver = (await SplToken.Token.getAssociatedTokenAddress(
+                    token.associatedProgramId,
+                    token.programId,
+                    tokenPublicKey,
+                    receiverPublicKey
+                )).toBase58();
+            }
 
-        if (tokenAddress) {
+            ws.addEventListener('open', () => {
+                ws.send(
+                    JSON.stringify({
+                        jsonrpc: '2.0',
+                        id: 1,
+                        method: 'logsSubscribe',
+                        params: [
+                            {
+                                mentions: [receiver],
+                            },
+                        ],
+                    })
+                );
+            });
 
-            let token = new SplToken.Token(
-                this.web3,
-                new Web3.PublicKey(tokenAddress),
-                SplToken.TOKEN_PROGRAM_ID
-            );
+            ws.addEventListener('message', (res) => {
+                let data = JSON.parse(res.data);
+                
+                if (typeof data.result == 'number') {
+                    subscriptionId = data.result;
+                }
 
-            let tokenPublicKey = new Web3.PublicKey(tokenAddress);
-            let tokenAccount = await SplToken.Token.getAssociatedTokenAddress(
-                token.associatedProgramId,
-                token.programId,
-                tokenPublicKey,
-                receiverPublicKey
-            );
-
-            requestSignatures = await this.web3.getSignaturesForAddress(tokenAccount, {
-                limit: 1
+                if (data.method && data.method == 'logsNotification' && data.params) {
+                    callback(subscription, this.Transaction(data.params.result.value.signature));
+                }
             });
         } else {
-            requestSignatures = await this.web3.getSignaturesForAddress(receiverPublicKey, {
-                limit: 1
-            });
+            throw new Error('Websocket provider is not defined');
         }
-        
-        let transaction = this.Transaction(requestSignatures[0].signature);
-
-        return {
-            hash: transaction.hash,
-            amount: await transaction.getTransactionAmount()
-        };
     }
 
     /**
