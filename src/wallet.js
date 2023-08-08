@@ -71,8 +71,8 @@ class Wallet {
     /**
      * @returns {String}
      */
-    getType() {
-        return this.adapter.type;
+    getSupports() {
+        return this.adapter.supports;
     }
 
     /**
@@ -89,6 +89,13 @@ class Wallet {
         return this.adapter.download;
     }
 
+    /**
+     * @returns {Boolean}
+     */
+    isDetected() {
+        return this.adapter.detected;
+    }
+
     getConnectedPublicKey() {
         return this.solWalletAdapter.publicKey.value || this.solWalletAdapter.publicKey;
     }
@@ -101,23 +108,12 @@ class Wallet {
                 this.wallet.addListener('error', (error) => {
                     utils.rejectMessage(error, reject);
                 });
-                
-                let time = 0;
-                let timeout = 15;
-                let timer = setInterval(async () => {
-                    time += 1;
-                    if (time > timeout) {
-                        clearInterval(timer);
-                        reject('timeout');
-                    }
-                }, 1000);
 
                 await this.solWalletAdapter.connect(this.wallet.name);
 
                 this.provider.setConnectedWallet(this);
                 this.connectedAccount = this.getConnectedAccount();
 
-                clearInterval(timer);
                 resolve(this.connectedAccount);
             } catch (error) {
                 utils.rejectMessage(error, reject);

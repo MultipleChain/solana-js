@@ -6,7 +6,11 @@ module.exports = slope = (provider) => {
     return {
         key: 'slope',
         name: 'Slope',
-        type: 'browser',
-        wallet
+        supports: [
+            'browser'
+        ],
+        wallet,
+        download: 'https://www.slope.finance/',
+        detected: Boolean(window.Slope)
     }
 }

@@ -7,6 +7,13 @@ module.exports = solflare = (provider) => {
         key: 'solflare',
         name: 'Solflare',
         type: 'browser',
-        wallet
+        supports: [
+            'browser',
+            'mobile'
+        ],
+        wallet,
+        download: 'https://solflare.com/download#extension',
+        deepLink: 'https://solflare.com/ul/v1/browse/{siteUrl}?ref={siteUrl}',
+        detected: Boolean(window.solflare?.isSolflare)
     }
 }

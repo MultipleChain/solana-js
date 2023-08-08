@@ -6,8 +6,13 @@ module.exports = phantom = (provider) => {
     return {
         key: 'phantom',
         name: 'Phantom',
-        type: 'browser',
+        supports: [
+            'browser',
+            'mobile'
+        ],
         wallet,
-        download: 'https://phantom.app/'
+        download: 'https://phantom.app/download',
+        deepLink: 'https://phantom.app/ul/browse/{siteUrl}?ref={siteUrl}',
+        detected: Boolean(window.phantom?.solana?.isPhantom)
     }
 }

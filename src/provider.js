@@ -74,12 +74,15 @@ class Provider {
      * @param {Object} options
      */
     constructor(options) {
-        this.wsUrl = options.customWs;
         this.testnet = options.testnet;
 
         this.network = this.networks[this.testnet ? 'devnet' : 'mainnet'];
         if (!this.testnet && options.customRpc) {
             this.network.host = options.customRpc;
+        }
+
+        if (!this.testnet && options.customWs) {
+            this.wsUrl = options.customWs;
         }
 
         if (this.wsUrl) {
@@ -241,12 +244,31 @@ class Provider {
     }
 
     /**
-     * @param {Array} filter 
+     * @param {Array|null} filter 
+     * @returns {Array}
+     */
+    getSupportedWallets(filter) {
+        
+        const Wallet = require('./wallet');
+
+        const wallets = {
+            phantom: new Wallet('phantom', this),
+            solflare: new Wallet('solflare', this),
+            slope: new Wallet('slope', this),
+        };
+
+        return Object.fromEntries(Object.entries(wallets).filter(([key]) => {
+            return !filter ? true : filter.includes(key);
+        }));
+    }
+
+    /**
+     * @param {Array|null} filter 
      * @returns {Array}
      */
     getDetectedWallets(filter) {
         return Object.fromEntries(Object.entries(this.detectedWallets).filter(([key]) => {
-            return filter.includes(key);
+            return !filter ? true : filter.includes(key);
         }));
     }
 
