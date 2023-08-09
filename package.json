@@ -1,7 +1,7 @@
 {
   "namespace": "multiplechain",
   "name": "@multiplechain/solana",
-  "version": "0.1.9",
+  "version": "0.1.11",
   "description": "Solana has ready-made methods to connect to wallets and perform many transactions.",
   "scripts": {
     "serve": "parcel test.html --no-cache --dist-dir test",
@@ -9,8 +9,8 @@
     "push": "webpack && npm publish"
   },
   "files": [
-    "dist",
-    "resources"
+    "src",
+    "dist"
   ],
   "main": "dist/solana-provider.js",
   "types": "index.d.ts",

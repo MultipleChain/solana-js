@@ -5,6 +5,10 @@ const Token = require('./entity/token');
 const SplToken = require('@solana/spl-token');
 const Transaction = require('./entity/transaction');
 
+if (typeof window === 'undefined') {
+    WebSocket = require('ws');
+}
+
 class Provider {
 
     /**
