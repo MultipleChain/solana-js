@@ -8,14 +8,14 @@ Number.prototype.countDecimals = function () {
 module.exports = Object.assign(utils, {
     rejectMessage(error, reject) {
         if (typeof error == 'object') {
-            if (
+            if ('WalletSendTransactionError' == error.name || error.message == 'User disapproved requested chains') {
+                return reject('not-accepted-chain');
+            } else if (
                 ['WalletConnectionError', 'WalletWindowClosedError', 'WalletAccountError'].includes(error.name) ||
                 error.code == 4001 || error.message == 'User rejected the request.' ||
                 error.name == 'WalletSignTransactionError'
             ) {
                 return reject('request-rejected');
-            } else if ('WalletSendTransactionError' == error.name) {
-                return reject('not-accepted-chain');
             } else if (error.name == 'WalletTimeoutError') {
                 return reject('timeout');
             } else if (

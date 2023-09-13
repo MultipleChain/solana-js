@@ -2,6 +2,7 @@ const adapters = {
     phantom: require('./adapters/phantom'),
     slope: require('./adapters/slope'),
     solflare: require('./adapters/solflare'),
+    walletconnect: require('./adapters/walletconnect'),
 }
 
 /**

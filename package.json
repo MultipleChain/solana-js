@@ -1,7 +1,7 @@
 {
   "namespace": "multiplechain",
   "name": "@multiplechain/solana",
-  "version": "0.1.11",
+  "version": "0.2.0",
   "description": "Solana has ready-made methods to connect to wallets and perform many transactions.",
   "scripts": {
     "serve": "parcel test.html --no-cache --dist-dir test",
@@ -39,6 +39,9 @@
     "@solana/wallet-adapter-slope": "^0.5.20",
     "@solana/wallet-adapter-solflare": "^0.6.24",
     "@solana/web3.js": "^1.74.0",
+    "@walletconnect/qrcode-modal": "^1.8.0",
+    "@walletconnect/sign-client": "^2.10.0",
+    "@walletconnect/utils": "^2.10.0",
     "solana-wallets-vue": "^0.6.0"
   },
   "devDependencies": {

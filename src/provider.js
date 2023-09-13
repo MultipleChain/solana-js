@@ -5,10 +5,6 @@ const Token = require('./entity/token');
 const SplToken = require('@solana/spl-token');
 const Transaction = require('./entity/transaction');
 
-if (typeof window === 'undefined') {
-    WebSocket = require('ws');
-}
-
 class Provider {
 
     /**
@@ -31,16 +27,17 @@ class Provider {
             host: "https://api.mainnet-beta.solana.com/",
             explorer: "https://solscan.io/"
         },
-        testnet: {
-            node: "testnet",
-            name: "Testnet",
-            host: "https://api.testnet.solana.com",
-            explorer: "https://solscan.io/"
-        },
         devnet: {
             node: "devnet",
             name: "Devnet",
             host: "https://api.devnet.solana.com",
+            wsUrl: "wss://fragrant-radial-sunset.solana-devnet.discover.quiknode.pro/734794d31e6e58ffc993b6454bb71da6a53b72cf/",
+            explorer: "https://solscan.io/"
+        },
+        testnet: {
+            node: "testnet",
+            name: "Testnet",
+            host: "https://api.testnet.solana.com",
             explorer: "https://solscan.io/"
         }
     }
@@ -53,7 +50,7 @@ class Provider {
     /**
      * @var {String}
      */
-    wsUrl;
+    wcProjectId = null;
 
     /**
      * @var {Boolean}
@@ -79,21 +76,25 @@ class Provider {
      */
     constructor(options) {
         this.testnet = options.testnet;
+        this.wcProjectId = options.wcProjectId;
 
         this.network = this.networks[this.testnet ? 'devnet' : 'mainnet'];
-        if (!this.testnet && options.customRpc) {
-            this.network.host = options.customRpc;
+
+        if (!this.testnet) {
+            if (options.customRpc) {
+                this.network.host = options.customRpc;
+            }
+            
+            if (options.customRpc) {
+                this.network.wsUrl = options.customWs;
+            }
         }
 
-        if (!this.testnet && options.customWs) {
-            this.wsUrl = options.customWs;
-        }
-
-        if (this.wsUrl) {
+        if (this.network.wsUrl) {
             this.qrPayments = true;
         }
 
-        this.web3 = new Web3.Connection(this.network.host);
+        this.web3 = new Web3.Connection(this.network.host, {wsEndpoint: this.network.wsUrl});
 
         this.detectWallets();
     }
@@ -106,19 +107,10 @@ class Provider {
         let subscriptionId;
         let receiver = options.receiver;
         let tokenAddress = options.tokenAddress;
-        if (this.wsUrl) {
-            let ws = new WebSocket(this.wsUrl);
+        if (this.qrPayments) {
             let subscription = {
                 unsubscribe: () => {
-                    ws.send(
-                        JSON.stringify({
-                            jsonrpc: '2.0',
-                            id: 1,
-                            method: 'logsUnsubscribe',
-                            params: [subscriptionId],
-                        })
-                    );
-                    ws.close();
+                    this.web3.removeOnLogsListener(subscriptionId);
                 }
             }
             
@@ -139,32 +131,10 @@ class Provider {
                 )).toBase58();
             }
 
-            ws.addEventListener('open', () => {
-                ws.send(
-                    JSON.stringify({
-                        jsonrpc: '2.0',
-                        id: 1,
-                        method: 'logsSubscribe',
-                        params: [
-                            {
-                                mentions: [receiver],
-                            },
-                        ],
-                    })
-                );
-            });
+            subscriptionId = this.web3.onLogs(new Web3.PublicKey(receiver), (logs, context) => {
+                callback(subscription, this.Transaction(logs.signature));
+            }, "finalized");
 
-            ws.addEventListener('message', (res) => {
-                let data = JSON.parse(res.data);
-                
-                if (typeof data.result == 'number') {
-                    subscriptionId = data.result;
-                }
-
-                if (data.method && data.method == 'logsNotification' && data.params) {
-                    callback(subscription, this.Transaction(data.params.result.value.signature));
-                }
-            });
         } else {
             throw new Error('Websocket provider is not defined');
         }
@@ -260,6 +230,10 @@ class Provider {
             solflare: new Wallet('solflare', this),
             slope: new Wallet('slope', this),
         };
+        
+        if (this.wcProjectId) {
+            wallets['walletconnect'] = new Wallet('walletconnect', this);
+        }
 
         return Object.fromEntries(Object.entries(wallets).filter(([key]) => {
             return !filter ? true : filter.includes(key);
@@ -290,6 +264,10 @@ class Provider {
 
             if (window.solflare?.isSolflare) {
                 this.detectedWallets['solflare'] = new Wallet('solflare', this);
+            }
+            
+            if (this.wcProjectId) {
+                this.detectedWallets['walletconnect'] = new Wallet('walletconnect', this);
             }
         }
     }

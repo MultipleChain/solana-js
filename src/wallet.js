@@ -109,6 +109,10 @@ class Wallet {
                     utils.rejectMessage(error, reject);
                 });
 
+                if (!this.provider.connectedWallet && this.adapter.removeOldConnection) {
+                    this.adapter.removeOldConnection();
+                }
+
                 await this.solWalletAdapter.connect(this.wallet.name);
 
                 this.provider.setConnectedWallet(this);
