@@ -134,7 +134,7 @@ class Provider {
 
             subscriptionId = this.web3.onLogs(new Web3.PublicKey(receiver), (logs, context) => {
                 callback(subscription, this.Transaction(logs.signature));
-            }, "finalized");
+            }, "confirmed");
 
             return subscription;
         } else {
