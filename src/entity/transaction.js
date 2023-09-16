@@ -83,8 +83,7 @@ class Transaction {
      * @returns {Number}
      */
     async getTransferAmount(options) {
-        try {
-            await this.getData();
+        if (await this.validate()) {
             let beforeBalance, afterBalance, diff, decimals;
             if (options && options.tokenAddress) {
                 decimals = this.data.meta.preTokenBalances[0].uiTokenAmount.decimals;
@@ -118,8 +117,8 @@ class Transaction {
             }
 
             return parseFloat(diff);
-        } catch (error) {
-            return this.getTransferAmount(options);
+        } else {
+            return 0;
         }
     }
 

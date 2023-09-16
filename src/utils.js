@@ -8,7 +8,18 @@ Number.prototype.countDecimals = function () {
 module.exports = Object.assign(utils, {
     rejectMessage(error, reject) {
         if (typeof error == 'object') {
-            if ('WalletSendTransactionError' == error.name || error.message == 'User disapproved requested chains') {
+
+            if (error.name == 'WalletSendTransactionError') {
+                if (
+                    String(error.message).indexOf('Unexpected error') > -1 ||
+                    String(error.message).indexOf('Transaction simulation failed: Blockhash not found') > -1  ||
+                    String(error.message).indexOf('Transaction results in an account (1) without insufficient funds for rent') > -1 
+                ) {
+                    return reject(error);
+                }
+            }
+
+            if ((error.name == 'WalletSendTransactionError' && error.message != 'User rejected the request.') || error.message == 'User disapproved requested chains') {
                 return reject('not-accepted-chain');
             } else if (
                 ['WalletConnectionError', 'WalletWindowClosedError', 'WalletAccountError'].includes(error.name) ||

@@ -102,6 +102,7 @@ class Provider {
     /**
      * @param {Object} options 
      * @param {Function} callback
+     * @returns {Object}
      */
     async listenTransactions(options, callback) {
         let subscriptionId;
@@ -135,6 +136,7 @@ class Provider {
                 callback(subscription, this.Transaction(logs.signature));
             }, "finalized");
 
+            return subscription;
         } else {
             throw new Error('Websocket provider is not defined');
         }
