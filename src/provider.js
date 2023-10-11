@@ -261,7 +261,7 @@ class Provider {
         if (typeof window != 'undefined') {
             const Wallet = require('./wallet');
 
-            if (window.phantom?.solana?.isPhantom) {
+            if (window.phantom?.solana?.isPhantom && !window.phantom?.connect) {
                 this.detectedWallets['phantom'] = new Wallet('phantom', this);
             }
 
