@@ -25,7 +25,9 @@ module.exports = {
         fallback: {
             http: false, 
             https: false,
-            stream: false
+            stream: false,
+            zlib: false,
+            crypto: false,
         }
     }
 };
