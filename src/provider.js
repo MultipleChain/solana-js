@@ -231,7 +231,11 @@ class Provider {
             phantom: new Wallet('phantom', this),
             solflare: new Wallet('solflare', this),
             slope: new Wallet('slope', this),
-            trustwallet: new Wallet('trustwallet', this)
+            trustwallet: new Wallet('trustwallet', this),
+            coinbasewallet: new Wallet('coinbasewallet', this),
+            bitget: new Wallet('bitget', this),
+            tokenpocket: new Wallet('tokenpocket', this),
+            torus: new Wallet('torus', this),
         };
         
         if (this.wcProjectId) {
@@ -272,6 +276,20 @@ class Provider {
             if (window?.ethereum?.isTrust || window?.trustwallet) {
                 this.detectedWallets['trustwallet'] = new Wallet('trustwallet', this);
             }
+
+            if (window?.CoinbaseWalletProvider) {
+                this.detectedWallets['coinbasewallet'] = new Wallet('coinbasewallet', this);
+            }
+            
+            if (window.bitkeep && bitkeep.solana) {
+                this.detectedWallets['bitget'] = new Wallet('bitget', this);
+            }
+
+            if (window.tokenpocket && window.tokenpocket.solana) {
+                this.detectedWallets['tokenpocket'] = new Wallet('tokenpocket', this);
+            }
+
+            this.detectedWallets['torus'] = new Wallet('torus', this);
 
             if (this.wcProjectId) {
                 this.detectedWallets['walletconnect'] = new Wallet('walletconnect', this);

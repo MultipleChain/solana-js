@@ -19,12 +19,10 @@ module.exports = Object.assign(utils, {
                 }
             }
 
-            if ((error.name == 'WalletSendTransactionError' && error.message != 'User rejected the request.') || error.message == 'User disapproved requested chains') {
-                return reject('not-accepted-chain');
-            } else if (
-                ['WalletConnectionError', 'WalletWindowClosedError', 'WalletAccountError'].includes(error.name) ||
+            if (
+                ['WalletConnectionError', 'WalletWindowClosedError', 'WalletAccountError', 'WalletSendTransactionError'].includes(error.name) ||
                 error.code == 4001 || error.message == 'User rejected the request.' ||
-                error.name == 'WalletSignTransactionError'
+                error.name == 'WalletSignTransactionError' || String(error.message).indexOf('user reject this request') > -1 || error.message == 'User canceled request'
             ) {
                 return reject('request-rejected');
             } else if (error.name == 'WalletTimeoutError') {
@@ -36,7 +34,9 @@ module.exports = Object.assign(utils, {
                 return reject('rpc-access-forbidden');
             } else if (error.name == "WalletNotReadyError") {
                 return reject('wallet-not-found');
-            }
+            } else if ((error.name == 'WalletSendTransactionError' && (error.message != 'User rejected the request.' || error.message != 'User canceled request')) || error.message == 'User disapproved requested chains') {
+                return reject('not-accepted-chain');
+            } 
         }
 
         return reject(error);
