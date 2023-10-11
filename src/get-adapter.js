@@ -3,6 +3,7 @@ const adapters = {
     slope: require('./adapters/slope'),
     solflare: require('./adapters/solflare'),
     walletconnect: require('./adapters/walletconnect'),
+    trustwallet: require('./adapters/trustwallet')
 }
 
 /**

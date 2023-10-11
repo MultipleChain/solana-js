@@ -1,4 +1,4 @@
-module.exports = slope = (provider) => {
+module.exports = (provider) => {
     
     const { SlopeWalletAdapter } = require('@solana/wallet-adapter-slope');
     const wallet = new SlopeWalletAdapter({ network: provider.network.node });

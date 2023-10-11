@@ -1,4 +1,4 @@
-module.exports = solflare = (provider) => {
+module.exports = (provider) => {
     
     const { SolflareWalletAdapter } = require('@solana/wallet-adapter-solflare');
     const wallet = new SolflareWalletAdapter({ network: provider.network.node });

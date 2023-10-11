@@ -1,4 +1,4 @@
-module.exports = walletconnect = (provider) => {
+module.exports = (provider) => {
 
     const WalletConnectWalletAdapter = require('../walletconnect-solana/index');
 

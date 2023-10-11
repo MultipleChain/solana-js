@@ -1,4 +1,4 @@
-module.exports = phantom = (provider) => {
+module.exports = (provider) => {
     
     const { PhantomWalletAdapter } = require('@solana/wallet-adapter-phantom');
     const wallet = new PhantomWalletAdapter({ network: provider.network.node });

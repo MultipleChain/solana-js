@@ -231,6 +231,7 @@ class Provider {
             phantom: new Wallet('phantom', this),
             solflare: new Wallet('solflare', this),
             slope: new Wallet('slope', this),
+            trustwallet: new Wallet('trustwallet', this)
         };
         
         if (this.wcProjectId) {
@@ -268,6 +269,10 @@ class Provider {
                 this.detectedWallets['solflare'] = new Wallet('solflare', this);
             }
             
+            if (window?.ethereum?.isTrust || window?.trustwallet) {
+                this.detectedWallets['trustwallet'] = new Wallet('trustwallet', this);
+            }
+
             if (this.wcProjectId) {
                 this.detectedWallets['walletconnect'] = new Wallet('walletconnect', this);
             }
