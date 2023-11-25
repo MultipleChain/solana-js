@@ -13,6 +13,6 @@ module.exports = (provider) => {
         wallet,
         deepLink: 'https://go.cb-w.com/dapp?cb_url={siteUrl}',
         download: 'https://www.coinbase.com/wallet/downloads',
-        detected : Boolean(window?.CoinbaseWalletProvider)
+        isDetected: () => Boolean(window?.CoinbaseWalletProvider)
     }
 }

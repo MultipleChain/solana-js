@@ -14,6 +14,6 @@ module.exports = (provider) => {
         wallet,
         download: 'https://solflare.com/download#extension',
         deepLink: 'https://solflare.com/ul/v1/browse/{siteUrl}?ref={siteUrl}',
-        detected: Boolean(window.solflare?.isSolflare)
+        isDetected: () => Boolean(window.solflare?.isSolflare)
     }
 }

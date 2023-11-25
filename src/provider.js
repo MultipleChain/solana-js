@@ -60,7 +60,7 @@ class Provider {
     /**
      * @var {Object}
      */
-    detectedWallets = [];
+    supportedWallets = {};
 
     /**
      * @var {Object}
@@ -96,7 +96,7 @@ class Provider {
 
         this.web3 = new Web3.Connection(this.network.host, {wsEndpoint: this.network.wsUrl});
 
-        this.detectWallets();
+        this.initSupportedWallets();
     }
 
     /**
@@ -220,14 +220,12 @@ class Provider {
     }
 
     /**
-     * @param {Array|null} filter 
-     * @returns {Array}
+     * @returns {void}
      */
-    getSupportedWallets(filter) {
-        
+    initSupportedWallets() {
         const Wallet = require('./wallet');
 
-        const wallets = {
+        this.supportedWallets = {
             phantom: new Wallet('phantom', this),
             solflare: new Wallet('solflare', this),
             slope: new Wallet('slope', this),
@@ -239,10 +237,16 @@ class Provider {
         };
         
         if (this.wcProjectId) {
-            wallets['walletconnect'] = new Wallet('walletconnect', this);
+            this.supportedWallets['walletconnect'] = new Wallet('walletconnect', this);
         }
+    }
 
-        return Object.fromEntries(Object.entries(wallets).filter(([key]) => {
+    /**
+     * @param {Array|null} filter 
+     * @returns {Array}
+     */
+    getSupportedWallets(filter) {
+        return Object.fromEntries(Object.entries(this.supportedWallets).filter(([key]) => {
             return !filter ? true : filter.includes(key);
         }));
     }
@@ -252,49 +256,10 @@ class Provider {
      * @returns {Array}
      */
     getDetectedWallets(filter) {
-        return Object.fromEntries(Object.entries(this.detectedWallets).filter(([key]) => {
-            return !filter ? true : filter.includes(key);
+        let detectedWallets = this.getSupportedWallets(filter);
+        return Object.fromEntries(Object.entries(detectedWallets).filter(([key, value]) => {
+            return value.isDetected() == undefined ? true : value.isDetected()
         }));
-    }
-
-    detectWallets() {
-        if (typeof window != 'undefined') {
-            const Wallet = require('./wallet');
-
-            if (window.phantom?.solana?.isPhantom && !window.phantom?.connect) {
-                this.detectedWallets['phantom'] = new Wallet('phantom', this);
-            }
-
-            if (window.Slope) {
-                this.detectedWallets['slope'] = new Wallet('slope', this);
-            }
-
-            if (window.solflare?.isSolflare) {
-                this.detectedWallets['solflare'] = new Wallet('solflare', this);
-            }
-            
-            if (window?.ethereum?.isTrust || window?.trustwallet) {
-                this.detectedWallets['trustwallet'] = new Wallet('trustwallet', this);
-            }
-
-            if (window?.CoinbaseWalletProvider) {
-                this.detectedWallets['coinbasewallet'] = new Wallet('coinbasewallet', this);
-            }
-            
-            if (window.bitkeep && bitkeep.solana) {
-                this.detectedWallets['bitget'] = new Wallet('bitget', this);
-            }
-
-            if (window.tokenpocket && window.tokenpocket.solana) {
-                this.detectedWallets['tokenpocket'] = new Wallet('tokenpocket', this);
-            }
-
-            this.detectedWallets['torus'] = new Wallet('torus', this);
-
-            if (this.wcProjectId) {
-                this.detectedWallets['walletconnect'] = new Wallet('walletconnect', this);
-            }
-        }
     }
 
     /**

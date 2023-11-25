@@ -13,6 +13,6 @@ module.exports = (provider) => {
         wallet,
         download: 'https://phantom.app/download',
         deepLink: 'https://phantom.app/ul/browse/{siteUrl}?ref={siteUrl}',
-        detected: Boolean(window.phantom?.solana?.isPhantom && !window.phantom?.connect)
+        isDetected: () => Boolean(window.phantom?.solana?.isPhantom && !window.phantom?.connect)
     }
 }

@@ -13,6 +13,6 @@ module.exports = (provider) => {
         wallet,
         deepLink: 'https://bkcode.vip?action=dapp&url={siteUrl}',
         download: 'https://web3.bitget.com/en/wallet-download?type=3',
-        detected : Boolean(window.bitkeep && window.bitkeep.solana)
+        isDetected: () => Boolean(window.bitkeep && window.bitkeep.solana)
     }
 }

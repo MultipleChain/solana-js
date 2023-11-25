@@ -11,6 +11,6 @@ module.exports = (provider) => {
         ],
         wallet,
         download: 'https://www.slope.finance/',
-        detected: Boolean(window.Slope)
+        isDetected: () => Boolean(window.Slope)
     }
 }

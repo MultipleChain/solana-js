@@ -93,7 +93,7 @@ class Wallet {
      * @returns {Boolean}
      */
     isDetected() {
-        return this.adapter.detected;
+        return this.adapter.isDetected ? this.adapter.isDetected() : undefined;
     }
 
     getConnectedPublicKey() {

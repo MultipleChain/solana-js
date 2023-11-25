@@ -16,6 +16,6 @@ module.exports = (provider) => {
             "source": "{siteUrl}",
         }),
         download: 'https://www.tokenpocket.pro/en/download/app',
-        detected : Boolean(window.tokenpocket && window.tokenpocket.solana)
+        isDetected: () => Boolean(window.tokenpocket && window.tokenpocket.solana)
     }
 }
