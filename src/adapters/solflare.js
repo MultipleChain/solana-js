@@ -6,7 +6,6 @@ module.exports = (provider) => {
     return {
         key: 'solflare',
         name: 'Solflare',
-        type: 'browser',
         supports: [
             'browser',
             'mobile'

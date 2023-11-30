@@ -12,6 +12,6 @@ module.exports = (provider) => {
         ],
         wallet,
         download: 'https://trustwallet.com/download',
-        isDetected: () => Boolean(window?.ethereum?.isTrust || window?.trustwallet)
+        isDetected: () => Boolean(window?.trustwallet?.isTrust || window?.trustwallet?.solana)
     }
 }
