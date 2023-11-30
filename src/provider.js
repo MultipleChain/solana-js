@@ -204,8 +204,9 @@ class Provider {
      */
     connectWallet(adapter) {
         return new Promise(async (resolve, reject) => {
-            if (this.detectedWallets[adapter]) {
-                let wallet = this.detectedWallets[adapter];
+            let detectedWallets = this.getDetectedWallets();
+            if (detectedWallets[adapter]) {
+                let wallet = detectedWallets[adapter];
                 wallet.connect()
                 .then(() => {
                     resolve(wallet);
