@@ -60,7 +60,7 @@ class Provider {
     /**
      * @var {Object}
      */
-    supportedWallets = {};
+    supportedWallets;
 
     /**
      * @var {Object}
@@ -95,8 +95,6 @@ class Provider {
         }
 
         this.web3 = new Web3.Connection(this.network.host, {wsEndpoint: this.network.wsUrl});
-
-        this.initSupportedWallets();
     }
 
     /**
@@ -221,32 +219,29 @@ class Provider {
     }
 
     /**
-     * @returns {void}
-     */
-    initSupportedWallets() {
-        const Wallet = require('./wallet');
-
-        this.supportedWallets = {
-            phantom: new Wallet('phantom', this),
-            solflare: new Wallet('solflare', this),
-            slope: new Wallet('slope', this),
-            trustwallet: new Wallet('trustwallet', this),
-            coinbasewallet: new Wallet('coinbasewallet', this),
-            bitget: new Wallet('bitget', this),
-            tokenpocket: new Wallet('tokenpocket', this),
-            torus: new Wallet('torus', this),
-        };
-        
-        if (this.wcProjectId) {
-            this.supportedWallets['walletconnect'] = new Wallet('walletconnect', this);
-        }
-    }
-
-    /**
      * @param {Array|null} filter 
      * @returns {Array}
      */
     getSupportedWallets(filter) {
+        if (!this.supportedWallets) {
+            const Wallet = require('./wallet');
+
+            this.supportedWallets = {
+                phantom: new Wallet('phantom', this),
+                solflare: new Wallet('solflare', this),
+                slope: new Wallet('slope', this),
+                trustwallet: new Wallet('trustwallet', this),
+                coinbasewallet: new Wallet('coinbasewallet', this),
+                bitget: new Wallet('bitget', this),
+                tokenpocket: new Wallet('tokenpocket', this),
+                torus: new Wallet('torus', this),
+            };
+            
+            if (this.wcProjectId) {
+                this.supportedWallets['walletconnect'] = new Wallet('walletconnect', this);
+            }
+        }
+        
         return Object.fromEntries(Object.entries(this.supportedWallets).filter(([key]) => {
             return !filter ? true : filter.includes(key);
         }));
