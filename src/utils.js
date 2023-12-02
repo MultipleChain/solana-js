@@ -9,6 +9,11 @@ module.exports = Object.assign(utils, {
     rejectMessage(error, reject) {
         if (typeof error == 'object') {
 
+            
+            if (error.message.includes('QR Code Modal Closed')) {
+                return reject('closed-walletconnect-modal')
+            }
+
             if (error.name == 'WalletSendTransactionError') {
                 if (
                     String(error.message).indexOf('Unexpected error') > -1 ||

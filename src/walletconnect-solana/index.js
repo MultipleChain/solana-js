@@ -1,4 +1,4 @@
-const { BaseSignerWalletAdapter, WalletAdapterNetwork, WalletConnectionError, WalletDisconnectedError, WalletDisconnectionError, WalletLoadError, WalletNotConnectedError, WalletNotReadyError, WalletReadyState, WalletSignMessageError, WalletSignTransactionError, WalletWindowClosedError, } = require('@solana/wallet-adapter-base');
+const { BaseSignerWalletAdapter, WalletAdapterNetwork, WalletConnectionError, WalletDisconnectedError, WalletDisconnectionError, WalletLoadError, WalletNotConnectedError, WalletNotReadyError, WalletReadyState, WalletSignMessageError, WalletSignTransactionError, } = require('@solana/wallet-adapter-base');
 
 class WalletConnectWalletAdapter extends BaseSignerWalletAdapter {
     constructor(config) {
@@ -59,8 +59,6 @@ class WalletConnectWalletAdapter extends BaseSignerWalletAdapter {
                 ({ publicKey } = await wallet.connect());
             }
             catch (error) {
-                if (error.constructor.name === 'QRCodeModalError')
-                    throw new WalletWindowClosedError();
                 throw new WalletConnectionError(error?.message, error);
             }
             wallet.client.on('session_delete', this._disconnected);

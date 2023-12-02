@@ -2,7 +2,7 @@ const base58 = require('bs58');
 const QRCodeModal = require('@walletconnect/qrcode-modal');
 const { Transaction, PublicKey } = require('@solana/web3.js');
 const { getSdkError, parseAccountId } = require('@walletconnect/utils');
-const { ClientNotInitializedError, QRCodeModalError } = require('./errors.js');
+const { ClientNotInitializedError } = require('./errors.js');
 const { SignClient: WalletConnectClient } = require('@walletconnect/sign-client');
 
 const WalletConnectChainID = {
@@ -49,7 +49,7 @@ class WalletConnectWallet {
             return new Promise((resolve, reject) => {
                 if (uri) {
                     QRCodeModal.open(uri, () => {
-                        reject(new QRCodeModalError());
+                        reject(new Error('QR Code Modal Closed'));
                     }, this._options.qrcodeModalOptions);
                 }
                 approval()

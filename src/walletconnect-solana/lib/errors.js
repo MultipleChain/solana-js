@@ -5,14 +5,6 @@ class ClientNotInitializedError extends Error {
     }
 }
 
-class QRCodeModalError extends Error {
-    constructor() {
-        super();
-        Object.setPrototypeOf(this, QRCodeModalError.prototype);
-    }
-}
-
 module.exports = {
-    QRCodeModalError,
     ClientNotInitializedError
 } 

@@ -109,7 +109,7 @@ class Wallet {
                     utils.rejectMessage(error, reject);
                 });
 
-                if (!this.provider.connectedWallet && this.adapter.removeOldConnection) {
+                if (this.getKey() == 'walletconnect') {
                     this.adapter.removeOldConnection();
                 }
 
