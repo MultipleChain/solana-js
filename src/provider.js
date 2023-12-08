@@ -90,11 +90,13 @@ class Provider {
             }
         }
 
+        let ops = {};
         if (this.network.wsUrl) {
             this.qrPayments = true;
+            ops.wsEndpoint = this.network.wsUrl;
         }
 
-        this.web3 = new Web3.Connection(this.network.host, {wsEndpoint: this.network.wsUrl});
+        this.web3 = new Web3.Connection(this.network.host, ops);
     }
 
     /**
