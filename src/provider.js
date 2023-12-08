@@ -31,7 +31,6 @@ class Provider {
             node: "devnet",
             name: "Devnet",
             host: "https://api.devnet.solana.com",
-            wsUrl: "wss://floral-clean-spree.solana-devnet.quiknode.pro/29d39a45cef16b3aae880c79b568619f4728d388/",
             explorer: "https://solscan.io/"
         },
         testnet: {
