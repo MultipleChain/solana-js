@@ -2,6 +2,7 @@ const utils = require('./utils');
 const Web3 = require('@solana/web3.js');
 const getAdapter = require('./get-adapter');
 const {initWallet, useWallet} = require('solana-wallets-vue');
+const SplTokenMetadata = require('@multiplechain/spl-token-metadata');
 
 class Wallet {
 
@@ -153,7 +154,6 @@ class Wallet {
     tokenTransfer(to, amount, tokenAddress) {
         return new Promise(async (resolve, reject) => {
             try {
-                this.validate(to, amount, tokenAddress);
                 let token = this.provider.Token(tokenAddress);
                 let data = await token.transfer(this.connectedAccount, to, amount);
 
@@ -179,7 +179,6 @@ class Wallet {
     coinTransfer(to, amount) {
         return new Promise(async (resolve, reject) => {
             try {
-                this.validate(to, amount);
                 let coin = this.provider.Coin();
                 let data = await coin.transfer(this.connectedAccount, to, amount);
                 
@@ -215,10 +214,25 @@ class Wallet {
      * @param {Number} decimals 
      * @returns {Object}
      */
+    async createTokenWithMetadata(metadata) {
+        let token = this.provider.Token();
+        let {
+            signers,
+            transaction, 
+            tokenAddress
+        } = await token.createWithMetadata(this.connectedAccount, metadata);
+        let transactionHash = await this.sendTransaction(transaction, {signers});
+        return {tokenAddress, transactionHash};
+    }
+
+    /**
+     * @param {Number} decimals 
+     * @returns {Object}
+     */
     async createToken(decimals) {
         let token = this.provider.Token();
         let mintAccount = Web3.Keypair.generate();
-        let transaction = token.create(this.connectedAccount, mintAccount, decimals);
+        let transaction = await token.create(this.connectedAccount, mintAccount, decimals);
         let hash = await this.sendTransaction(transaction, {signers: [mintAccount]});
         return {tokenAddress: mintAccount.publicKey.toString(), hash};
     }
@@ -230,7 +244,7 @@ class Wallet {
     async createTokenAccount(tokenAddress) {
         let newAcount = Web3.Keypair.generate();
         let token = this.provider.Token(tokenAddress);
-        let transaction = token.createAccount(this.connectedAccount, newAcount);
+        let transaction = await token.createAccount(this.connectedAccount, newAcount);
         let hash = await this.sendTransaction(transaction, {signers: [newAcount]});
         return {tokenAccountAddress: newAcount.publicKey.toString(), hash};
     }
@@ -241,31 +255,33 @@ class Wallet {
      * @param {Number} amount 
      * @returns 
      */
-    async tokenMint(tokenAddress, tokenAccount, amount) {
+    async mintToToken(tokenAddress, tokenAccount, amount) {
         let token = this.provider.Token(tokenAddress);
         let transaction = await token.mintTo(this.connectedAccount, tokenAccount, amount);
-        return await this.sendTransaction(transaction);
+        return this.sendTransaction(transaction);
     }
 
     /**
-     * @param {String} to
-     * @param {Integer} amount
-     * @param {String|null} tokenAddress
-     * @return {Boolean}
-     * @throws {Error}
+     * @param {String} tokenAddress 
+     * @param {Object} metadata 
+     * @returns {String} 
      */
-    validate(to, amount, tokenAddress = null) {
-        if (!this.connectedAccount) {
-            throw new Error("no-linked-wallet");
-        } 
-
-        if (amount <= 0) {
-            throw new Error("transfer-amount-error");
-        } 
-
-        return true;
+    async createTokenMetadata(tokenAddress, metadata) {
+        const stmd = new SplTokenMetadata(this.provider.network.node);
+        const instrucion = await stmd.createSplTokenMetadata(this.connectedAccount, tokenAddress, metadata);
+        return this.sendTransaction(this.provider.createTransaction(instrucion));
     }
-    
+
+    /**
+     * @param {String} tokenAddress 
+     * @param {Object} metadata 
+     * @returns {String} 
+     */
+    async updateTokenMetadata(tokenAddress, metadata) {
+        const stmd = new SplTokenMetadata(this.provider.network.node);
+        const instrucion = await stmd.updateSplTokenMetadata(this.connectedAccount, tokenAddress, metadata);
+        return this.sendTransaction(this.provider.createTransaction(instrucion));
+    }
 } 
 
 module.exports = Wallet;

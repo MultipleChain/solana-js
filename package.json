@@ -1,7 +1,7 @@
 {
   "namespace": "multiplechain",
   "name": "@multiplechain/solana",
-  "version": "0.2.8",
+  "version": "0.3.0",
   "description": "Solana has ready-made methods to connect to wallets and perform many transactions.",
   "scripts": {
     "serve": "parcel test.html --no-cache --dist-dir test",
@@ -32,6 +32,7 @@
   },
   "homepage": "https://github.com/MultipleChain/solana-js",
   "dependencies": {
+    "@multiplechain/spl-token-metadata": "^0.1.2",
     "@multiplechain/utils": "^0.1.1",
     "@solana/spl-token": "0.1.8",
     "@solana/spl-token-registry": "^0.2.4574",
@@ -47,6 +48,7 @@
     "@walletconnect/qrcode-modal": "^1.8.0",
     "@walletconnect/sign-client": "^2.10.0",
     "@walletconnect/utils": "^2.10.0",
+    "bignumber.js": "^9.1.2",
     "solana-wallets-vue": "^0.6.0"
   },
   "devDependencies": {

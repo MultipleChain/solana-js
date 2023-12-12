@@ -2,6 +2,7 @@ const utils = require('../utils');
 const Web3 = require('@solana/web3.js');
 const SplToken = require('@solana/spl-token');
 const {TokenListProvider} = require('@solana/spl-token-registry');
+const SplTokenMetadata = require('@multiplechain/spl-token-metadata');
 
 class Token {
     
@@ -240,61 +241,87 @@ class Token {
 
     /**
      * @param {String} from
-     * @param {String} tokenAccount 
-     * @param {Number} amount 
-     * @returns 
-     */
-    async mintTo(from, tokenAccount, amount) {
-        tokenAccount = new Web3.PublicKey(tokenAccount);
-        const token = this.splTokenInstance(this.address);
-        const mintInfo = await token.getMintInfo(this.address);
-        const publicKey = new Web3.PublicKey(from);
-
-        return this.provider.createTransaction(
-            SplToken.Token.createMintToInstruction(
-                this.getProgramId(),
-                token.publicKey,
-                tokenAccount, 
-                publicKey,
-                [],
-                utils.toHex(amount, mintInfo.decimals)
-            )
-        );
-    }
-
-    /**
-     * @param {String} from 
-     * @param {Object} newAcount
-     * @returns 
-     */
-    async createAccount(from, newAcount) {
-        const token = this.splTokenInstance(this.address);
-        const publicKey = new Web3.PublicKey(from);
+     * @param {Number} decimals 
+     * @returns {Object}
+     */    
+    async createWithMetadata(from, metadata) {
         
-        const balanceNeeded = await SplToken.Token.getMinBalanceRentForExemptAccount(this.provider.web3);
+        await utils.validateTokenMetaData(metadata);
 
-        const transaction = this.web3.createTransaction(
+        const fromPublicKey = new Web3.PublicKey(from);
+        const newTokenAccount = Web3.Keypair.generate();
+        const newTokenMintAccount = Web3.Keypair.generate();
+        const signers = [newTokenAccount, newTokenMintAccount];
+
+        const balanceNeededMint = await SplToken.Token.getMinBalanceRentForExemptMint(this.provider.web3);
+        const balanceNeededAccount = await SplToken.Token.getMinBalanceRentForExemptAccount(this.provider.web3);
+
+        const transaction = this.provider.createTransaction(
             Web3.SystemProgram.createAccount({
-                fromPubkey: publicKey,
-                newAccountPubkey: newAcount.publicKey,
-                lamports: balanceNeeded,
-                space: SplToken.AccountLayout.span,
+                fromPubkey: fromPublicKey,
+                newAccountPubkey: newTokenMintAccount.publicKey,
+                lamports: balanceNeededMint,
+                space: SplToken.MintLayout.span,
                 programId: this.getProgramId()
             })
         );
 
         transaction.add(
-            SplToken.Token.createInitAccountInstruction(
+            SplToken.Token.createInitMintInstruction(
                 this.getProgramId(),
-                token.publicKey,
-                newAcount.publicKey,
-                publicKey
+                newTokenMintAccount.publicKey,
+                metadata.decimals, 
+                fromPublicKey,
+                fromPublicKey
             )
         );
-        
-        return transaction;
-    }
 
+        transaction.add(
+            Web3.SystemProgram.createAccount({
+                fromPubkey: fromPublicKey,
+                newAccountPubkey: newTokenAccount.publicKey,
+                lamports: balanceNeededAccount,
+                space: SplToken.AccountLayout.span,
+                programId: this.getProgramId()
+            })
+        );
+        
+        transaction.add(
+            SplToken.Token.createInitAccountInstruction(
+                this.getProgramId(),
+                newTokenMintAccount.publicKey,
+                newTokenAccount.publicKey,
+                fromPublicKey
+            )
+        );
+
+        const supply = utils.supplyFormat(metadata.supply, metadata.decimals);
+
+        transaction.add(
+            SplToken.Token.createMintToInstruction(
+                this.getProgramId(),
+                newTokenMintAccount.publicKey,
+                newTokenAccount.publicKey, 
+                fromPublicKey,
+                [],
+                supply
+            )
+        );
+
+        const stmd = new SplTokenMetadata(this.provider.network.node);
+
+        transaction.add(
+            await stmd.createSplTokenMetadata(
+                from, 
+                newTokenMintAccount.publicKey.toString(), 
+                metadata
+            )
+        );
+
+        return {transaction, signers, tokenAddress: newTokenMintAccount.publicKey.toString()};
+    }
+    
+    
     /**
      * @param {String} from
      * @param {Object} mintAccount
@@ -303,13 +330,13 @@ class Token {
      */    
     async create(from, mintAccount, decimals) {
         
-        const publicKey = new Web3.PublicKey(from);
+        const fromPublicKey = new Web3.PublicKey(from);
         
         const balanceNeeded = await SplToken.Token.getMinBalanceRentForExemptMint(this.provider.web3);
 
         const transaction = this.provider.createTransaction(
             Web3.SystemProgram.createAccount({
-                fromPubkey: publicKey,
+                fromPubkey: fromPublicKey,
                 newAccountPubkey: mintAccount.publicKey,
                 lamports: balanceNeeded,
                 space: SplToken.MintLayout.span,
@@ -322,12 +349,71 @@ class Token {
                 this.getProgramId(),
                 mintAccount.publicKey,
                 decimals, 
-                publicKey,
-                publicKey
+                fromPublicKey,
+                fromPublicKey
             )
         );
 
         return transaction;
+    }
+
+    /**
+     * @param {String} from 
+     * @param {Object} newAcount
+     * @returns 
+     */
+    async createAccount(from, newAcount) {
+        const token = this.splTokenInstance(this.address);
+        const fromPublicKey = new Web3.PublicKey(from);
+        
+        const balanceNeeded = await SplToken.Token.getMinBalanceRentForExemptAccount(this.provider.web3);
+
+        const transaction = this.provider.createTransaction(
+            Web3.SystemProgram.createAccount({
+                fromPubkey: fromPublicKey,
+                newAccountPubkey: newAcount.publicKey,
+                lamports: balanceNeeded,
+                space: SplToken.AccountLayout.span,
+                programId: this.getProgramId()
+            })
+        );
+
+        transaction.add(
+            SplToken.Token.createInitAccountInstruction(
+                this.getProgramId(),
+                token.publicKey,
+                newAcount.publicKey,
+                fromPublicKey
+            )
+        );
+        
+        return transaction;
+    }
+
+    /**
+     * @param {String} from
+     * @param {String} tokenAccount 
+     * @param {Number} supply 
+     * @returns 
+     */
+    async mintTo(from, tokenAccount, supply) {
+        tokenAccount = new Web3.PublicKey(tokenAccount);
+        const token = this.splTokenInstance(this.address);
+        const mintInfo = await token.getMintInfo(this.address);
+        const fromPublicKey = new Web3.PublicKey(from);
+
+        supply = utils.supplyFormat(supply, mintInfo.decimals);
+
+        return this.provider.createTransaction(
+            SplToken.Token.createMintToInstruction(
+                this.getProgramId(),
+                token.publicKey,
+                tokenAccount, 
+                fromPublicKey,
+                [],
+                supply
+            )
+        );
     }
 
     /**

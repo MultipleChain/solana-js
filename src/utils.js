@@ -1,4 +1,5 @@
 const utils = require('@multiplechain/utils');
+const BigNumber = require('bignumber.js');
 
 Number.prototype.countDecimals = function () {
     if(Math.floor(this.valueOf()) === this.valueOf()) return 0;
@@ -6,6 +7,63 @@ Number.prototype.countDecimals = function () {
 }
 
 module.exports = Object.assign(utils, {
+    supplyFormat(supply, decimals) {
+        let length = '1' + '0'.repeat(decimals);
+        let value = new BigNumber(supply.toString(10), 10).times(length);
+        return value.toString(10);
+    },
+    async validateTokenMetaData(metaData) {
+        if (!metaData.decimals) {
+            throw new Error("Token decimals required!");
+        }
+
+        if (!metaData.supply) {
+            throw new Error("Token supply required!");
+        }
+
+        if (!metaData.symbol) {
+            throw new Error("Token symbol required!");
+        }
+
+        if (!metaData.name) {
+            throw new Error("Token name require!");
+        }
+
+        if (metaData.supply <= 0) {
+            throw new Error("Token supply must be greater than 0!");
+        }
+
+        if (metaData.decimals <= 0) {
+            throw new Error("Token decimals must be greater than 0!");
+        }
+
+        if (metaData.symbol.length < 2 || metaData.symbol.length > 5) {
+            throw new Error("Token symbol length must be between 2 and 5 characters!");
+        }
+
+        let jsonData = await fetch(metaData.uri)
+        .then(response => response.json())
+        .catch((error) => {
+            console.log(error)
+            throw new Error("Token uri have json problem!");
+        });
+
+        if (!jsonData.image) {
+            throw new Error("Token image required!");
+        }
+
+        if (!jsonData.description) {
+            throw new Error("Token description required!");
+        }
+
+        if (!jsonData.name || jsonData.name != metaData.name) {
+            throw new Error("Token name not same with uri!");
+        }
+
+        if (!jsonData.symbol || jsonData.symbol != metaData.symbol) {
+            throw new Error("Token symbol not same with uri!");
+        }
+    },
     rejectMessage(error, reject) {
         if (typeof error == 'object') {
 

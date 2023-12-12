@@ -198,6 +198,14 @@ class Provider {
     }
 
     /**
+     * @param {String} commitment 
+     * @returns {String}
+     */
+    async getLatestBlockhash(commitment = 'finalized') {
+        return (await this.web3.getLatestBlockhash(commitment)).blockhash;
+    }
+
+    /**
      * @param {String} adapter 
      * @returns {Promise}
      */
