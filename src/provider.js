@@ -80,12 +80,12 @@ class Provider {
         this.network = this.networks[this.testnet ? 'devnet' : 'mainnet'];
 
         if (!this.testnet) {
-            if (options.customRpc) {
-                this.network.host = options.customRpc;
+            if (options.rpcUrl) {
+                this.network.host = options.rpcUrl;
             }
             
-            if (options.customRpc) {
-                this.network.wsUrl = options.customWs;
+            if (options.wsUrl) {
+                this.network.wsUrl = options.wsUrl;
             }
         }
 
