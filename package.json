@@ -4,7 +4,7 @@
   "version": "0.3.1",
   "description": "Solana has ready-made methods to connect to wallets and perform many transactions.",
   "scripts": {
-    "serve": "parcel test.html --no-cache --dist-dir test",
+    "serve": "parcel test.html --port 4033 --no-cache --dist-dir test",
     "build": "webpack",
     "push": "webpack && npm publish"
   },
