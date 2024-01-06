@@ -1,7 +1,7 @@
 {
   "namespace": "multiplechain",
   "name": "@multiplechain/solana",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Solana has ready-made methods to connect to wallets and perform many transactions.",
   "scripts": {
     "serve": "parcel test.html --port 4033 --no-cache --dist-dir test",
@@ -50,6 +50,11 @@
     "@walletconnect/utils": "^2.10.0",
     "bignumber.js": "^9.1.2",
     "solana-wallets-vue": "^0.6.0"
+  },
+  "alias": {
+      "process": {
+        "global": "process"
+      }
   },
   "devDependencies": {
     "assert": "^2.0.0",

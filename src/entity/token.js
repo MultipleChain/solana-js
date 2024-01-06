@@ -142,20 +142,24 @@ class Token {
      * @returns {Number}
      */
     async getBalance(from) {
-        const tokenPublicKey = new Web3.PublicKey(this.address);
+        try {
+            const tokenPublicKey = new Web3.PublicKey(this.address);
 
-        const token = this.splTokenInstance(this.address);
-        const fromPublicKey = new Web3.PublicKey(from);
-        const tokenAccount = await SplToken.Token.getAssociatedTokenAddress(
-            token.associatedProgramId,
-            token.programId,
-            tokenPublicKey,
-            fromPublicKey
-        );
+            const token = this.splTokenInstance(this.address);
+            const fromPublicKey = new Web3.PublicKey(from);
+            const tokenAccount = await SplToken.Token.getAssociatedTokenAddress(
+                token.associatedProgramId,
+                token.programId,
+                tokenPublicKey,
+                fromPublicKey
+            );
 
-        let tokenInfo = await this.provider.web3.getTokenAccountBalance(tokenAccount);
+            let tokenInfo = await this.provider.web3.getTokenAccountBalance(tokenAccount);
 
-        return tokenInfo ? tokenInfo.value.uiAmount : 0;
+            return tokenInfo ? tokenInfo.value.uiAmount : 0;
+        } catch (error) {
+            return 0;
+        }
     }
 
     /**
