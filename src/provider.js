@@ -7,6 +7,10 @@ const Transaction = require('./entity/transaction');
 
 class Provider {
 
+    static Web3 = Web3;
+
+    static SplToken = SplToken;
+
     /**
      * @var {Object}
      */

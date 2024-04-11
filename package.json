@@ -1,7 +1,7 @@
 {
   "namespace": "multiplechain",
   "name": "@multiplechain/solana",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Solana has ready-made methods to connect to wallets and perform many transactions.",
   "scripts": {
     "serve": "parcel test.html --port 4033 --no-cache --dist-dir test",
