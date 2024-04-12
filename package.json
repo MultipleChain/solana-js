@@ -1,7 +1,7 @@
 {
   "namespace": "multiplechain",
   "name": "@multiplechain/solana",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Solana has ready-made methods to connect to wallets and perform many transactions.",
   "scripts": {
     "serve": "parcel test.html --port 4033 --no-cache --dist-dir test",
@@ -32,6 +32,7 @@
   },
   "homepage": "https://github.com/MultipleChain/solana-js",
   "dependencies": {
+    "@metaplex-foundation/js": "^0.19.5",
     "@multiplechain/spl-token-metadata": "^0.1.2",
     "@multiplechain/utils": "^0.1.1",
     "@solana/spl-token": "0.1.8",
@@ -52,15 +53,16 @@
     "solana-wallets-vue": "^0.6.0"
   },
   "alias": {
-      "process": {
-        "global": "process"
-      }
+    "process": {
+      "global": "process"
+    }
   },
   "devDependencies": {
     "assert": "^2.0.0",
     "browserify-zlib": "^0.2.0",
     "buffer": "^5.7.1",
     "https-browserify": "^1.0.0",
+    "path-browserify": "^1.0.1",
     "process": "^0.11.10",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",

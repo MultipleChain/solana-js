@@ -1,6 +1,7 @@
 const utils = require('../utils');
 const Web3 = require('@solana/web3.js');
 const SplToken = require('@solana/spl-token');
+const { Metaplex } = require('@metaplex-foundation/js');
 const {TokenListProvider} = require('@solana/spl-token-registry');
 const SplTokenMetadata = require('@multiplechain/spl-token-metadata');
 
@@ -20,6 +21,11 @@ class Token {
      * @var {Object} 
      */
     tokenInfo;
+
+    /**
+     * @var {Object}
+     */
+    metadata;
 
     /**
      * @var {Object}
@@ -61,6 +67,12 @@ class Token {
                 resolve(this.tokenInfo = tokenInfo ? tokenInfo : this.testnetTokens[this.address]);
             });
         });
+    }
+
+    async getTokenMetadata() {
+        const metaplex = Metaplex.make(this.provider.web3);
+        const mintAddress = new Web3.PublicKey(this.address);
+        return this.metadata = await metaplex.nfts().findByMint({ mintAddress: mintAddress });
     }
 
     /**
@@ -112,7 +124,11 @@ class Token {
      */
     async getName() {
         await this.getInfo();
-        return this.tokenInfo.name;
+        if (this.tokenInfo.name) {
+            return this.tokenInfo.name;
+        }
+        await this.getTokenMetadata();
+        return this.metadata?.name; 
     }
 
     /**
@@ -120,7 +136,11 @@ class Token {
      */
     async getSymbol() {
         await this.getInfo();
-        return this.tokenInfo.symbol;
+        if (this.tokenInfo.symbol) {
+            return this.tokenInfo.symbol;
+        }
+        await this.getTokenMetadata();
+        return this.metadata?.symbol;
     }
 
     /**
@@ -129,7 +149,11 @@ class Token {
      */
     async getDecimals(from = null) {
         await this.getInfo(from);
-        return this.tokenInfo.decimals;
+        if (this.tokenInfo.decimals) {
+            return this.tokenInfo.decimals;
+        }
+        await this.getTokenMetadata();
+        return this.metadata?.mint?.decimals;
     }
 
     async getTotalSupply() {

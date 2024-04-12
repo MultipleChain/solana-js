@@ -28,6 +28,7 @@ module.exports = {
             stream: false,
             zlib: false,
             crypto: false,
+            path: false,
         }
     }
 };
