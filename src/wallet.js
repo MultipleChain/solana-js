@@ -170,6 +170,25 @@ class Wallet {
         });
     }
 
+    tokenApprove(spender, amount, tokenAddress) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                let token = this.provider.Token(tokenAddress);
+                let data = await token.approve(this.connectedAccount, spender, amount);
+
+                this.sendTransaction(data)
+                .then((transactionId) => {
+                    resolve(this.provider.Transaction(transactionId));
+                })
+                .catch((error) => {
+                    utils.rejectMessage(error, reject);
+                });
+            } catch (error) {
+                utils.rejectMessage(error, reject);
+            }
+        });
+    }
+
     /**
      * @param {String} to
      * @param {Integer} amount

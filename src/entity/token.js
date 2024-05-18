@@ -266,6 +266,46 @@ class Token {
             }
         });
     }
+    
+    async approve(from, spender, amount) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                if (parseFloat(amount) < 0) {
+                    return reject('transfer-amount-error');
+                }
+
+                if (parseFloat(amount) > await this.getBalance(from)) {
+                    return reject('insufficient-balance');
+                }
+
+                const programId = this.getProgramId();
+                const fromPublicKey = new Web3.PublicKey(from);
+                const spenderPublicKey = new Web3.PublicKey(spender);
+                const tokenPublicKey = new Web3.PublicKey(this.address);
+                amount = parseInt(utils.toHex(amount, await this.getDecimals(from)), 16);
+    
+                const token = this.splTokenInstance(this.address);
+    
+                const fromTokenAccount = await token.getOrCreateAssociatedAccountInfo(fromPublicKey);
+    
+                const transaction = new Web3.Transaction();
+                transaction.add(
+                    SplToken.Token.createApproveInstruction(
+                        programId,
+                        fromTokenAccount.address,
+                        spenderPublicKey,
+                        fromPublicKey,
+                        [],
+                        amount
+                    )
+                );
+    
+                return resolve(transaction);
+            } catch (error) {
+                return reject(error);
+            }
+        });
+    }
 
     /**
      * @param {String} from
